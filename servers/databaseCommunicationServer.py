@@ -7,7 +7,7 @@ db = MySQLdb.connect(host="localhost",
                      passwd="123456",
                      db="Tests")
 
-cursor = db.cursor()
+
 
 class DBConnect(Protocol):
     def dataReceived(self, data):
@@ -17,11 +17,18 @@ class DBConnect(Protocol):
         try:
             if data2[0] == 'read':
                 query = """SELECT %s FROM student""" % (data2[1])
+                cursor = db.cursor()
                 cursor.execute(query)
                 for row in cursor.fetchall():
                     self.transport.write(str(row) + '\n')
+                cursor.close()
                 self.transport.loseConnection()
             elif data2[0] == 'write':
+                query = """INSERT INTO student (name,lastName,account) VALUES ('%s','%s',%d)""" % ('Pablo','Tortis',500)
+                cursor = db.cursor()
+                cursor.execute(query)
+                db.commit()
+                cursor.close()
                 self.transport.loseConnection()
             elif data2 == 'exit':
                 self.transport.loseConnection()
