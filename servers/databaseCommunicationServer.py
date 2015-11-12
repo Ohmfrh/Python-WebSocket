@@ -17,7 +17,6 @@ class DBConnect(Protocol):
         try:
             if data2[0] == 'read':
                 query = """SELECT %s FROM student""" % (data2[1])
-                print query
                 cursor.execute(query)
                 for row in cursor.fetchall():
                     self.transport.write(str(row) + '\n')
@@ -25,7 +24,6 @@ class DBConnect(Protocol):
             elif data2[0] == 'write':
                 self.transport.loseConnection()
             elif data2 == 'exit':
-                print 'Connection terminated'
                 self.transport.loseConnection()
             else:
                 self.transport.write('ERROR\n')
