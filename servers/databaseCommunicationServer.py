@@ -16,7 +16,7 @@ class DBConnect(Protocol):
 
         try:
             if data2[0] == 'read':
-                query = """SELEC %s FROM student""" % (data2[1])
+                query = """SELECT %s FROM student""" % (data2[1])
                 print query
                 cursor.execute(query)
                 for row in cursor.fetchall():
@@ -35,7 +35,7 @@ class DBConnect(Protocol):
             self.transport.write('Insufficient Data\n')
             self.transport.loseConnection()
         except MySQLdb.Error, e:
-            print "MySQL Error [%d]: %s" %(e.args[0], e.args[1])
+            print "MySQL Error [%d]: %s" % (e.args[0], e.args[1])
             self.transport.write('Mysql Query Error\n')
             self.transport.loseConnection()
 
