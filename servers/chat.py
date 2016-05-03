@@ -41,10 +41,9 @@ class MyChat(basic.LineReceiver):
                     i += 1
                 print modules[i]['module']
                 if modules[i]['module'] == 'RFID':
-                    query = """select string from identificacion_identify WHERE string = '%s'""" % (line)
-                    cursor = db.cursor()
-                    cursor.execute(query)
-                    if cursor.fetchall():
+                    usrId = databaseQuery(line, modules[i]['module'])
+
+                    if usrId != -1:
                         modules[i]['thread'].transport.write('1')
                         for module in modules:
                             if module['module'] == 'audio/video':
@@ -53,13 +52,10 @@ class MyChat(basic.LineReceiver):
                                 print "NO A/V MODULE"
                     else:
                         self.transport.write('0')
-                    cursor.close()
                 elif modules[i]['module'] == 'audio/video':
                     print "De misterchanz"
             else:
                 print "NO MODULES"
-
-
 
     def message(self, message):
         # data = {}
@@ -68,6 +64,22 @@ class MyChat(basic.LineReceiver):
         # self.transport.write(json_data)
         self.transport.write(message)
 
+def databaseQuery(line, module):
+    if module == 'RFID':
+        query = """SELECT usr.id AS userId FROM usuarios_usersys AS usr
+                LEFT JOIN identificacion_identify AS id
+                ON usr.id=id.usersys_id WHERE id.string='%s';""" % (line)
+        cursor = db.cursor()
+        cursor.execute(query)
+
+        if cursor.fetchall():
+            cursor.close()
+            return 1
+        else:
+            cursor.close()
+            return -1
+    else:
+        return -1
 
 factory = protocol.ServerFactory()
 factory.protocol = MyChat
