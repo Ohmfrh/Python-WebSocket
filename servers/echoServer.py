@@ -5,6 +5,8 @@ from twisted.internet import reactor
 class Echo(Protocol):
     def dataReceived(self, data):
         data2 = data.rstrip()
+        print data
+        print self
 
         if data2 == 'a':
             self.transport.write('Command a selected\n')
@@ -20,7 +22,7 @@ class Echo(Protocol):
 def main():
     f = Factory()
     f.protocol = Echo
-    reactor.listenTCP(8000, f)
+    reactor.listenTCP(8080, f)
     reactor.run()
 
 
