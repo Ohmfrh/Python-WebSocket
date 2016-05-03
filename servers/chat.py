@@ -44,10 +44,14 @@ class MyChat(basic.LineReceiver):
                     usrId = databaseQuery(line, modules[i]['module'])
 
                     if usrId != -1:
+                        print usrId
                         modules[i]['thread'].transport.write('1')
                         for module in modules:
                             if module['module'] == 'audio/video':
                                 print "Enviar a misterchanz"
+                                databaseQuery(usrId, 'video')
+                                databaseQuery(usrId, 'audio')
+                                break
                             else:
                                 print "NO A/V MODULE"
                     else:
@@ -64,25 +68,44 @@ class MyChat(basic.LineReceiver):
         # self.transport.write(json_data)
         self.transport.write(message)
 
+
 def databaseQuery(line, module):
     if module == 'RFID':
+        usrId = -1
         query = """SELECT usr.id AS userId FROM usuarios_usersys AS usr
                 LEFT JOIN identificacion_identify AS id
                 ON usr.id=id.usersys_id WHERE id.string='%s';""" % (line)
         cursor = db.cursor()
         cursor.execute(query)
 
-        if cursor.fetchall():
-            cursor.close()
-            return 1
-        else:
-            cursor.close()
-            return -1
+        for row in cursor.fetchall():
+            usrId = row[0]
+        cursor.close()
+        return usrId
+    elif module == 'video':
+        query = """SELECT usr.name, usr.last_names, i.name, i.path, s.address FROM usuarios_usersys AS usr
+                RIGHT JOIN imagenes_userimage AS ui ON usr.id=ui.user_id LEFT JOIN imagenes_image AS i
+                ON i.id=ui.image_id LEFT JOIN multimedia_server AS s ON s.id=i.server_id WHERE usr.id=%i;""" % (line)
+        cursor = db.cursor()
+        cursor.execute(query)
+
+        for row in cursor.fetchall():
+            print str(row)
+    elif module == 'audio':
+        query = """SELECT usr.name, usr.last_names, a.name, a.path, s.address FROM usuarios_usersys AS usr
+        RIGHT JOIN musica_usersong AS ua ON usr.id=ua.user_id LEFT JOIN musica_song AS a ON a.id=ua.song_id
+        LEFT JOIN multimedia_server AS s ON s.id=a.server_id WHERE usr.id=%i;""" % (line)
+        cursor = db.cursor()
+        cursor.execute(query)
+
+        for row in cursor.fetchall():
+            print str(row)
+
     else:
         return -1
 
 factory = protocol.ServerFactory()
 factory.protocol = MyChat
 factory.clients = []
-reactor.listenTCP(8080, factory)
+reactor.listenTCP(9090, factory)
 reactor.run()
