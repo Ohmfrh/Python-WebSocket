@@ -53,7 +53,7 @@ class MyChat(basic.LineReceiver):
                                 databaseQuery(usrId, 'audio')
                                 break
                             else:
-                                print "NO A/V MODULE"
+                                print "SEARCHING"
                     else:
                         self.transport.write('0')
                 elif modules[i]['module'] == 'audio/video':
