@@ -1,10 +1,10 @@
 import MySQLdb
 from twisted.protocols import basic
 from twisted.internet import reactor, protocol
-from twisted.application import service, internet
 
 import json
 modules = []
+
 
 class MyChat(basic.LineReceiver):
     def connectionMade(self):
@@ -45,8 +45,25 @@ class MyChat(basic.LineReceiver):
                         for module in modules:
                             if module['module'] == 'audio/video':
                                 print "Enviar a misterchanz"
-                                databaseQuery(usrId, 'video')
-                                databaseQuery(usrId, 'audio')
+                                video = databaseQuery(usrId, 'video')
+                                audio = databaseQuery(usrId, 'audio')
+                                persona = {}
+                                data = {}
+                                persona['nombre'] = 'Daniel Castro'
+                                persona['audio'] = audio
+                                persona['img'] = video
+
+                                data['persona'] = persona
+                                data['accion'] = 'in/out'
+
+                                json_data = json.dumps(data)
+                                j=0
+                                for module in modules:
+                                    if module['module'] == 'audio/video':
+                                        modules[j]['thread'].transport.write(json_data)
+                                        break
+                                    j += 1
+
                                 break
                             else:
                                 print "SEARCHING"
@@ -66,10 +83,7 @@ class MyChat(basic.LineReceiver):
 
 
 def databaseQuery(line, module):
-    db = MySQLdb.connect(host="localhost",
-                     user="daniel",
-                     passwd="12345",
-                     db="aula")
+    db = MySQLdb.connect(host="localhost", user="daniel", passwd="12345", db="aula")
     if module == 'RFID':
         usrId = -1
         query = """SELECT usr.id AS userId FROM usuarios_usersys AS usr
@@ -89,23 +103,50 @@ def databaseQuery(line, module):
                 ON i.id=ui.image_id LEFT JOIN multimedia_server AS s ON s.id=i.server_id WHERE usr.id=%i;""" % (line)
         cursor = db.cursor()
         cursor.execute(query)
+        list = buildJSONDB(cursor, 'video')
 
-        for row in cursor.fetchall():
-            print str(row)
-    elif module == 'audio':
-        query = """SELECT usr.name, usr.last_names, a.name, a.path, s.address FROM usuarios_usersys AS usr
-        RIGHT JOIN musica_usersong AS ua ON usr.id=ua.user_id LEFT JOIN musica_song AS a ON a.id=ua.song_id
-        LEFT JOIN multimedia_server AS s ON s.id=a.server_id WHERE usr.id=%i;""" % (line)
-        cursor = db.cursor()
-        cursor.execute(query)
-
-        for row in cursor.fetchall():
-            print str(row)
         db.close()
         cursor.close()
 
+        return list
+
+    elif module == 'audio':
+        query = """SELECT s.address, a.path, a.name, a.album, a.artist, a.image FROM usuarios_usersys AS usr
+                RIGHT JOIN musica_usersong AS ua ON usr.id=ua.user_id LEFT JOIN musica_song AS a ON a.id=ua.song_id
+                LEFT JOIN multimedia_server AS s ON s.id=a.server_id WHERE usr.id=%i""" % (line)
+        cursor = db.cursor()
+        cursor.execute(query)
+        list = buildJSONDB(cursor, 'audio')
+
+        db.close()
+        cursor.close()
+
+        return list
+
     else:
         return -1
+
+
+def buildJSONDB(cursor, module):
+    obj = {}
+    list = []
+    if module == 'video':
+        for row in cursor.fetchall():
+            obj['path'] = 'http://' + row[4] + row[3] + row[2]
+            list.append(obj)
+
+        return list
+    elif module == 'audio':
+        for row in cursor.fetchall():
+            obj['path'] = 'http://' + row[0] + row[1] + row[2]
+            obj['artista'] = row[3]
+            obj['album'] = row[4]
+            obj['imagen'] = row[5]
+
+            list.append(obj)
+
+        return list
+
 
 factory = protocol.ServerFactory()
 factory.protocol = MyChat
