@@ -175,6 +175,7 @@ def databaseQuery(line, module):
         for row in cursor.fetchall():
             return row[0]
     elif module == 'pipeline':
+        print line
         query = """INSERT INTO home_pipeline (pipe) VALUES ('%s')""" % (line)
         cursor = db.cursor()
         cursor.execute(query)
