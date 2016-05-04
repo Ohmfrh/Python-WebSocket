@@ -47,14 +47,23 @@ class MyChat(basic.LineReceiver):
                                 print "Enviar a misterchanz"
                                 video = databaseQuery(usrId, 'video')
                                 audio = databaseQuery(usrId, 'audio')
+                                user = databaseQuery(usrId, 'user')
+                                print user
                                 persona = {}
                                 data = {}
-                                persona['nombre'] = 'Daniel Castro'
+                                persona['nombre'] = user['name']
                                 persona['audio'] = audio
                                 persona['img'] = video
 
                                 data['persona'] = persona
-                                data['accion'] = 'in/out'
+                                if user['logged'] == '0':
+                                    data['accion'] = 'in'
+                                    print databaseQuery(usrId, 'login')
+                                elif user['logged'] == '1':
+                                    data['accion'] = 'out'
+                                    print databaseQuery(usrId, 'logout')
+                                else:
+                                    print "????"
 
                                 json_data = json.dumps(data)
                                 j=0
@@ -117,11 +126,44 @@ def databaseQuery(line, module):
         cursor = db.cursor()
         cursor.execute(query)
         list = buildJSONDB(cursor, 'audio')
-
-        db.close()
         cursor.close()
+        db.close()
+
 
         return list
+    elif module == 'user':
+        obj = {}
+        query = """SELECT name, last_names, logged FROM usuarios_usersys WHERE id=%i;""" % (line)
+        cursor = db.cursor()
+        cursor.execute(query)
+        for row in cursor.fetchall():
+            name = row[0] + ' ' + row[1]
+            logged = row[2]
+
+            break
+        obj['name'] = name
+        obj['logged'] = logged
+        cursor.close()
+        db.close()
+
+        return obj
+    elif module == 'logout':
+        print "LOGOUT"
+        query = """UPDATE usuarios_usersys SET logged=0 WHERE id=%i""" % (line)
+        cursor = db.cursor()
+        cursor.execute(query)
+        db.commit()
+        cursor.close()
+        db.close()
+    elif module=='login':
+        print "LOGIN"
+        query = """UPDATE usuarios_usersys SET logged=1 WHERE id=%i""" % (line)
+        cursor = db.cursor()
+        cursor.execute(query)
+        db.commit()
+        cursor.close()
+        db.close()
+
 
     else:
         return -1
