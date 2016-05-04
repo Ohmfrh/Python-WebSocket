@@ -187,13 +187,14 @@ def buildJSONDB(cursor, module):
     list = []
     if module == 'video':
         for row in cursor.fetchall():
-            obj['path'] = 'http://' + row[4] + row[3] + row[2]
-            list.append(obj)
+            path = 'http://' + row[4] + row[3] + row[2]
+            list.append(path)
 
         return list
     elif module == 'audio':
         for row in cursor.fetchall():
-            obj['path'] = 'http://' + row[0] + row[1] + row[2]
+            obj['nombre'] = row[2]
+            obj['src'] = 'http://' + row[0] + row[1] + row[2]
             obj['artista'] = row[3]
             obj['album'] = row[4]
             obj['imagen'] = row[5]
