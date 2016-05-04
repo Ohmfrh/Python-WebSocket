@@ -39,7 +39,9 @@ class MyChat(basic.LineReceiver):
                 if modules[i]['module'] == 'RFID':
                     usrId = databaseQuery(line, modules[i]['module'])
 
-                    if usrId != -1:
+                    connections = databaseQuery('', 'checkLogged')
+
+                    if usrId != -1 and connections <= 5:
                         print usrId
                         modules[i]['thread'].transport.write('1')
                         for module in modules:
@@ -163,9 +165,20 @@ def databaseQuery(line, module):
         db.commit()
         cursor.close()
         db.close()
+    elif module == 'checkLogged':
+        print "IN LOGGED"
+        count = 0
+        query = """SELECT COUNT(*) FROM usuarios_usersys WHERE logged='1'"""
+        cursor = db.cursor()
+        cursor.execute(query)
+        for row in cursor.fetchall():
+            return row[0]
 
+        cursor.close()
+        db.close()
 
     else:
+        db.close()
         return -1
 
 
