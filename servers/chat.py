@@ -198,6 +198,7 @@ def buildJSONDB(cursor, module):
         return list
     elif module == 'audio':
         for row in cursor.fetchall():
+            print str(row)
             obj['nombre'] = row[2]
             obj['src'] = 'http://' + row[0] + row[1] + row[2]
             obj['artista'] = row[3]
