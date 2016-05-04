@@ -100,6 +100,7 @@ def databaseQuery(line, module):
 
         for row in cursor.fetchall():
             print str(row)
+        cursor.close()
 
     else:
         return -1
