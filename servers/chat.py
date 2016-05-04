@@ -71,6 +71,7 @@ class MyChat(basic.LineReceiver):
                                 j=0
                                 for module in modules:
                                     if module['module'] == 'audio/video':
+                                        databaseQuery(json_data, 'pipeline')
                                         modules[j]['thread'].transport.write(json_data)
                                         break
                                     j += 1
@@ -173,7 +174,11 @@ def databaseQuery(line, module):
         cursor.execute(query)
         for row in cursor.fetchall():
             return row[0]
-
+    elif module == 'pipeline':
+        query = """INSERT INTO home_pipeline (pipe) VALUES ('%s')""" % (line)
+        cursor = db.cursor()
+        cursor.execute(query)
+        db.commit()
         cursor.close()
         db.close()
 
