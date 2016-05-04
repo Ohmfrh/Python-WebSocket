@@ -5,10 +5,6 @@ from twisted.application import service, internet
 
 import json
 modules = []
-db = MySQLdb.connect(host="localhost",
-                     user="daniel",
-                     passwd="12345",
-                     db="aula")
 
 class MyChat(basic.LineReceiver):
     def connectionMade(self):
@@ -70,6 +66,10 @@ class MyChat(basic.LineReceiver):
 
 
 def databaseQuery(line, module):
+    db = MySQLdb.connect(host="localhost",
+                     user="daniel",
+                     passwd="12345",
+                     db="aula")
     if module == 'RFID':
         usrId = -1
         query = """SELECT usr.id AS userId FROM usuarios_usersys AS usr
@@ -81,6 +81,7 @@ def databaseQuery(line, module):
         for row in cursor.fetchall():
             usrId = row[0]
         cursor.close()
+        db.close()
         return usrId
     elif module == 'video':
         query = """SELECT usr.name, usr.last_names, i.name, i.path, s.address FROM usuarios_usersys AS usr
@@ -100,6 +101,7 @@ def databaseQuery(line, module):
 
         for row in cursor.fetchall():
             print str(row)
+        db.close()
         cursor.close()
 
     else:
