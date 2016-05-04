@@ -182,7 +182,6 @@ def databaseQuery(line, module):
         db.commit()
         cursor.close()
         db.close()
-
     else:
         db.close()
         return -1
@@ -207,7 +206,7 @@ def buildJSONDB(cursor, module):
             obj['imagen'] = row[5]
 
             list.append(obj)
-
+        print list
         return list
 
 
